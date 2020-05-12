@@ -1,5 +1,4 @@
 import socket
-import multiplayer
 import sys
 import time
 import urllib.request
@@ -85,13 +84,14 @@ answer = input("You walk into town. Do you want to (h)ost or (j)oin a game?\n> "
 if answer == "h" or answer == "host":
     host = True
 
-    s = multiplayer.Socket(True, socket.gethostname(), PORT)
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind((socket.gethostname(), PORT))
     players.append({"socket": "host", "address": "host"})
     print("Send this info to the people you want to join the game: IP - " + socket.gethostbyname(socket.gethostname()) + " Port - " + str(PORT))
-    s.s.listen(5)
+    s.listen(5)
     while len(players) < 4:
         try:
-            clientsocket, address = s.s.accept()
+            clientsocket, address = s.accept()
             players.append({"socket": clientsocket, "address": address})
             print("Player joined!")
         except:
@@ -109,9 +109,10 @@ if answer == "j" or answer == "join":
     ip = input("Enter the IP the host gave you.\n> ")
     port = input("Enter the port the host gave you.\n> ")
 
-    s = multiplayer.Socket(False, ip, port)
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect((ip, port))
 
-    msgRecvd, msgRecvdType = recvMessage(s.s)
+    msgRecvd, msgRecvdType = recvMessage(s)
     if msgRecvd == "lobby full" and msgRecvdType == "s":
         game()
     else:
