@@ -173,7 +173,7 @@ if answer == "h" or answer == "host":
 
     for player in players:
         if player["address"] != "host":
-            player["socket"].send(byteEncodeAndAddHeader("lobby full", "c"))
+            player["socket"].send(byteEncodeAndAddHeader("lobby full", "s"))
 
     game(s)
 
