@@ -16,29 +16,6 @@ host = False
 emergencySocketStop = False
 sendersTypeChosen = {}
 
-def checkTypes():
-    global sendersTypeChosen
-
-    for sender, status in sendersTypeChosen.items():
-        if status == False:
-            return False
-    return True
-
-def listenForTypeChoice(s):
-    global players
-    global sendersTypeChosen
-
-    for player in players:
-        sendersTypeChosen[player["address"][0]] = False
-
-    msg, msgType, msgSender = recvMessage(s)
-
-    if msgType == "s":
-        if msg == "crystals chosen":
-            for player in players:
-                if player["address"][0] == msgSender:
-                    sendersTypeChosen[player["address"][0]] = True
-
 def game(s):
     global host
     global sendersTypeChosen
@@ -46,9 +23,6 @@ def game(s):
     global emergencySocketStop
 
     print("Game starting...")
-    if host:
-        thread = threading.Thread(target=listenForTypeChoice, args=[s])
-        thread.start()
     time.sleep(1)
     os.system("cls")
 
@@ -66,26 +40,6 @@ def game(s):
     if crystal == "green":
         print("Shining metal armour appears on your body and a stallin at your side.")
         charType = "knight"
-
-    if host:
-        print("Waiting for other players to choose a crystal...")
-        while True:    
-            crystalsChosen = checkTypes()
-            if crystalsChosen == True:
-                break
-        for player in players:
-            if player["address"][0] != "host":
-                player["socket"].send(byteEncodeAndAddHeader("crystals chosen", "s"))
-    if not host:
-        s.sendall(byteEncodeAndAddHeader("type chosen", "s"))
-        print("Waiting for other players to choose a crystal...")
-        msg, msgType, msgSender = recvMessage(s)
-        if msg == "crystals chosen" and msgType == "s":
-            pass
-        else:
-            print("Malformed message received from host. Exitting game.")
-            emergencySocketStop = True
-            sys.exit()
 
     # all players' crystals chosen, continue game
 
@@ -152,7 +106,7 @@ def recvMessage(s):
 
 gender = input("Are you a (m)ale or a (f)emale. PS: anything in brackets is an option you can answer with\n> ")
 
-input("Your mum walks up to you. She says, \"You are finally awake. Your quest begins now.\" (press ENTER to continue)")
+input("Your mum walks up to you. She says, \"You are finally awake. You better head outside.\" (press ENTER to continue)")
 answer = input("You walk into town. Do you want to (h)ost or (j)oin a game?\n> ")
 
 if answer == "h" or answer == "host":
