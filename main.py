@@ -3,6 +3,7 @@ import sys
 import time
 import urllib.request
 import os
+import threading
 
 PORT = 1234
 HEADERSIZE = 20
@@ -13,24 +14,77 @@ prompt = "> "
 players = []
 host = False
 emergencySocketStop = False
+sendersTypeChosen = {}
 
-def game():
+def checkTypes():
+    global sendersTypeChosen
+
+    for sender, status in sendersTypeChosen.items():
+        if status == False:
+            checkTypes()
+
+def listenForTypeChoice(s):
+    global players
+    global sendersTypeChosen
+
+    for player in players:
+        sendersTypeChosen[player["address"][0]] = False
+
+    msg, msgType, msgSender = recvMessage(s)
+
+    if msgType == "s":
+        if msg == "type chosen":
+            for player in players:
+                if player["address"][0] == msgSender:
+                    sendersTypeChosen[player["address"][0]] = True
+
+def game(s):
+    global host
+    global sendersTypeChosen
+    global players
+    global emergencySocketStop
+
     print("Game starting...")
+    if host:
+        thread = threading.Thread(target=listenForTypeChoice, args=[s])
+        thread.start()
     time.sleep(1)
     os.system("cls")
 
-    print("A strange man approaches you. He unrolls a piece of leather showing four crystals.")
-    print("""
-    +--------------------------------------+
-    |   _____    _____    _____    _____   |
-    |  /    \\  /    \\  /    \\  /    \\  |
-    | \\_____/ \\_____/ \\_____/ \\_____/  |
-    |                                      |
-    |   orange   purple    blue    green   |
-    |                                      |
-    +--------------------------------------+
-    """)
+    crystal = input("A strange man approaches you. He unrolls a piece of leather showing four crystals. One (orange), one (purple), one (blue), and one (green). He says, \"I see you are new to the town. Want a crystal to get you ready for what may lie ahead? If so, which one?\"\n> ")
 
+    if crystal == "orange":
+        print("You grow taller. A beard appears on your face and a staff appears in your hand. The man hands you a pointy hat and tells you to put it on, so you do.")
+        charType = "wizard"
+    if crystal == "purple":
+        print("You become slightly shorter and more plump. The man hands you a pair of welding goggles which you put on.")
+        charType = "engineer"
+    if crystal == "blue":
+        print("The man hands you a wand and a cloak which you put on.")
+        charType = "mage"
+    if crystal == "green":
+        print("Shining metal armour appears on your body and a stallin at your side.")
+        charType = "knight"
+
+    if host:
+        print("Waiting for other players to choose a crystal...")
+        checkTypes()
+        for player in players:
+            if player["address"][0] != "host":
+                player["socket"].send(byteEncodeAndAddHeader("crystals chosen", "s"))
+    if not host:
+        s.sendall(byteEncodeAndAddHeader("type chosen", "s"))
+        msg, msgType, msgSender = recvMessage(s)
+        if msg == "crystals chosen" and msgType == "s":
+            pass
+        else:
+            print("Malformed message received from host. Exitting game.")
+            emergencySocketStop = True
+            sys.exit()
+
+    # all players' crystals chosen, continue game
+
+    
 
 def byteEncodeAndAddHeader(msg, msgType):
     msg = bytes(msg, "utf-8")
@@ -79,6 +133,8 @@ def recvMessage(s):
                 #print("sb5")
                 msgType = fullMsg.decode("utf-8")[HEADERSIZE]
 
+                msgSender = fullMsg.decode("utf-8")[HEADERSIZE+TYPEHEADERSIZE:HEADERSIZE+TYPEHEADERSIZE+SENDERHEADERSIZE]
+
                 finalMessage = fullMsg[FULLHEADERSIZE:].decode("utf-8")
 
                 newMsg = True
@@ -86,9 +142,9 @@ def recvMessage(s):
 
                 #print("sb6")
                 #print((finalMessage, msgType))
-                return (finalMessage, msgType)
+                return (finalMessage, msgType, msgSender)
         else:
-            return (None, None)
+            return (None, None, None)
 
 
 gender = input("Are you a (m)ale or a (f)emale. PS: anything in brackets is an option you can answer with\n> ")
@@ -118,7 +174,7 @@ if answer == "h" or answer == "host":
         if player["address"] != "host":
             player["socket"].send(byteEncodeAndAddHeader("lobby full", "c"))
 
-    game()
+    game(s)
 
 if answer == "j" or answer == "join":
     host = False
@@ -129,11 +185,11 @@ if answer == "j" or answer == "join":
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((ip, int(port)))
 
-    msgRecvd, msgRecvdType = recvMessage(s)
+    msgRecvd, msgRecvdType, msgRecvdSender = recvMessage(s)
     if msgRecvd == "lobby full" and msgRecvdType == "s":
-        game()
+        game(s)
     else:
-        print("Connection error. Malformed message from host.")
+        print("Malformed message received from host. Exitting game.")
         time.sleep(2)
         emergencySocketStop = True
         sys.exit()
