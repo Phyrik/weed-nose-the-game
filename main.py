@@ -4,7 +4,7 @@ import sys
 import time
 import urllib.request
 
-PORT = 10000
+PORT = 1234
 HEADERSIZE = 20
 TYPEHEADERSIZE = 1
 SENDERHEADERSIZE = 15
@@ -87,7 +87,7 @@ if answer == "h" or answer == "host":
 
     s = multiplayer.Socket(True, socket.gethostname(), PORT)
     players.append({"socket": "host", "address": "host"})
-    print("Send this info to the people you want to join the game: IP - " + urllib.request.urlopen("https://api.ipify.org").read().decode("utf-8") + " Port - " + str(PORT))
+    print("Send this info to the people you want to join the game: IP - " + socket.gethostbyname(socket.gethostname()) + " Port - " + str(PORT))
     s.s.listen(5)
     while len(players) < 4:
         try:
