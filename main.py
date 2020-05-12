@@ -2,6 +2,7 @@ import socket
 import sys
 import time
 import urllib.request
+import os
 
 PORT = 1234
 HEADERSIZE = 20
@@ -15,7 +16,21 @@ emergencySocketStop = False
 
 def game():
     print("Game starting...")
-    input()
+    time.sleep(1)
+    os.system("cls")
+
+    print("A strange man approaches you. He unrolls a piece of leather showing four crystals.")
+    print("""
+    +--------------------------------------+
+    |   _____    _____    _____    _____   |
+    |  /    \\  /    \\  /    \\  /    \\  |
+    | \\_____/ \\_____/ \\_____/ \\_____/  |
+    |                                      |
+    |   orange   purple    blue    green   |
+    |                                      |
+    +--------------------------------------+
+    """)
+
 
 def byteEncodeAndAddHeader(msg, msgType):
     msg = bytes(msg, "utf-8")
@@ -82,6 +97,8 @@ input("Your mum walks up to you. She says, \"You are finally awake. Your quest b
 answer = input("You walk into town. Do you want to (h)ost or (j)oin a game?\n> ")
 
 if answer == "h" or answer == "host":
+    lobbySize = int(input("How many players do you want to be in your group, including you?\n> "))
+
     host = True
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -89,7 +106,7 @@ if answer == "h" or answer == "host":
     players.append({"socket": "host", "address": "host"})
     print("Send this info to the people you want to join the game: IP - " + socket.gethostbyname(socket.gethostname()) + " Port - " + str(PORT))
     s.listen(5)
-    while len(players) < 4:
+    while len(players) < lobbySize:
         try:
             clientsocket, address = s.accept()
             players.append({"socket": clientsocket, "address": address})
@@ -110,7 +127,7 @@ if answer == "j" or answer == "join":
     port = input("Enter the port the host gave you.\n> ")
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((ip, port))
+    s.connect((ip, int(port)))
 
     msgRecvd, msgRecvdType = recvMessage(s)
     if msgRecvd == "lobby full" and msgRecvdType == "s":
