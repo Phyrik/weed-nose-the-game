@@ -4,7 +4,7 @@ import sys
 import time
 import urllib.request
 
-PORT = 1234
+PORT = 10000
 HEADERSIZE = 20
 TYPEHEADERSIZE = 1
 SENDERHEADERSIZE = 15

@@ -4,7 +4,7 @@ import time
 
 class Socket:
     def __init__(self, host, ip, port):
-        self.port = port
+        self.port = int(port)
         self.ip = ip
         self.host = host
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
