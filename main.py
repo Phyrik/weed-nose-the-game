@@ -34,7 +34,7 @@ def listenForTypeChoice(s):
     msg, msgType, msgSender = recvMessage(s)
 
     if msgType == "s":
-        if msg == "type chosen":
+        if msg == "crystals chosen":
             for player in players:
                 if player["address"][0] == msgSender:
                     sendersTypeChosen[player["address"][0]] = True
@@ -88,8 +88,6 @@ def game(s):
             sys.exit()
 
     # all players' crystals chosen, continue game
-
-
 
 def byteEncodeAndAddHeader(msg, msgType):
     msg = bytes(msg, "utf-8")
