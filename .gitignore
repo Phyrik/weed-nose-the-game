@@ -1,0 +1,4 @@
+pyinstaller.exe
+build/
+main.spec
+__pycache__/
