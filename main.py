@@ -21,7 +21,8 @@ def checkTypes():
 
     for sender, status in sendersTypeChosen.items():
         if status == False:
-            checkTypes()
+            return False
+    return True
 
 def listenForTypeChoice(s):
     global players
@@ -68,7 +69,10 @@ def game(s):
 
     if host:
         print("Waiting for other players to choose a crystal...")
-        checkTypes()
+        while True:    
+            crystalsChosen = checkTypes()
+            if crystalsChosen == True:
+                break
         for player in players:
             if player["address"][0] != "host":
                 player["socket"].send(byteEncodeAndAddHeader("crystals chosen", "s"))
