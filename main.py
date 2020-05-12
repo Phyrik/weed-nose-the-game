@@ -74,6 +74,7 @@ def game(s):
                 player["socket"].send(byteEncodeAndAddHeader("crystals chosen", "s"))
     if not host:
         s.sendall(byteEncodeAndAddHeader("type chosen", "s"))
+        print("Waiting for other players to choose a crystal...")
         msg, msgType, msgSender = recvMessage(s)
         if msg == "crystals chosen" and msgType == "s":
             pass
@@ -84,7 +85,7 @@ def game(s):
 
     # all players' crystals chosen, continue game
 
-    
+
 
 def byteEncodeAndAddHeader(msg, msgType):
     msg = bytes(msg, "utf-8")
