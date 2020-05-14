@@ -4,6 +4,7 @@ import time
 import urllib.request
 import os
 import threading
+import keyboard
 
 PORT = 1234
 HEADERSIZE = 20
@@ -15,12 +16,26 @@ players = []
 host = False
 emergencySocketStop = False
 sendersTypeChosen = {}
+teleporter = [
+    "The town",
+    "Home",
+    "The market"
+]
+yourJob = None
+allJobs = {
+    "1": {"id": 1, "text": "Collect the ancient runes of time from the castle in the west."},
+    "2": {"id": 2, "text": "Extract the crystal of Horath from the ruins of Hagrot."},
+    "3": {"id": 3, "text": "Get me a cake from the market."},
+}
 
 def game(s):
     global host
     global sendersTypeChosen
     global players
     global emergencySocketStop
+    global teleporter
+    global allJobs
+    global job
 
     print("Game starting...")
     time.sleep(1)
@@ -38,10 +53,130 @@ def game(s):
         print("The man hands you a wand and a cloak which you put on.")
         charType = "mage"
     if crystal == "green":
-        print("Shining metal armour appears on your body and a stallin at your side.")
+        print("Shining metal armour appears on your body and a stallion at your side.")
         charType = "knight"
 
-    # all players' crystals chosen, continue game
+    answer = input("Would you mind running some errands for me? It will pocket you some money! (y)/(n)\n> ")
+
+    if answer == "yes" or answer == "y":
+        print("Thanks! Here is a list of all the jobs that I need done around here.")
+    if answer == "no" or answer == "n":
+        print("What's that? I'll assume its a yes, I'm hard of hearing you see. Here's a list of the stuff I need done.")
+
+    print("""
+    1. Collect the ancient runes of time from the castle in the west.
+    2. Extract the crystal of Horath from the ruins of Hagrot.
+    3. Get me a cake from the market.
+    """)
+    addPlaceToTeleporter("The castle in the west")
+    addPlaceToTeleporter("The ruins of Hagrot")
+
+    job = int(input("Choose a job from above by typing its number.\n> "))
+
+    if job == 1:
+        newJob(allJobs["1"])
+    if job == 2:
+        newJob(allJobs["2"])
+    if job == 3:
+        newJob(allJobs["3"])
+    if job == None:
+        askStartingJobAgain()
+
+    answer = input("Now open up the teleporter by typing '/teleport'.\n> ")
+
+    if answer == "/teleport":
+        print("To use the teleporter use the up and down arrow keys to select where you want to teleport to. To exit the teleporter, click escape. Whenever you start moving the pointer, this message will dissapear.")
+        printTeleporter()
+
+def moveTeleporterPointer(newPosition):
+    global teleporter
+    underflow = False
+    overflow = False
+
+    os.system("cls")
+
+    for place in teleporter:
+        if newPosition > len(teleporter) - 1:
+            overflow = True
+            if teleporter.index(place) == 0:
+                print("> " + place)
+                continue
+            print("  " + place)
+            continue
+        if newPosition < 0:
+            underflow = True
+            if teleporter.index(place) == len(teleporter) - 1:
+                print("> " + place)
+                continue
+            print("  " + place)
+            continue
+        if teleporter.index(place) == newPosition:
+            print("> " + place)
+            continue
+        print("  " + place)
+
+    if underflow == True:
+        return len(teleporter) - 1
+    if overflow == True:
+        return 0
+    return newPosition
+
+def printTeleporter():
+    global teleporter
+    global prompt
+
+    pointerLine = 0
+
+    os.system("cls")
+
+    print("> " + teleporter[0])
+    for place in teleporter:
+        if place == teleporter[0]: continue
+        print("  " + place)
+
+    while True:
+        if keyboard.is_pressed("up"):
+            pointerLine -= 1
+            pointerLine = moveTeleporterPointer(pointerLine)
+        if keyboard.is_pressed("down"):
+            pointerLine += 1
+            pointerLine = moveTeleporterPointer(pointerLine)
+        if keyboard.is_pressed("enter"):
+            # handle teleporting to place
+            pass
+        if keyboard.is_pressed("esc"):
+            os.system("cls")
+            print(prompt)
+            return
+
+def askStartingJobAgain():
+    global newJob
+
+    job = int(input("Please type either 1, 2, or 3 to choose a job.\n> "))
+
+    if job == 1:
+        newJob(allJobs["1"])
+    if job == 2:
+        newJob(allJobs["2"])
+    if job == 3:
+        newJob(allJobs["3"])
+    else:
+        askStartingJobAgain()
+
+def newJob(job):
+    global yourJob
+
+    if yourJob != None:
+        print("You can't have two jobs at the same time!")
+        return
+
+    yourJob = job
+
+def addPlaceToTeleporter(place):
+    global teleporter
+
+    teleporter.append(place)
+    print(place + " has been added to your teleporter!")
 
 def byteEncodeAndAddHeader(msg, msgType):
     msg = bytes(msg, "utf-8")
