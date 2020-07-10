@@ -85,8 +85,21 @@ def game(s):
     answer = input("Now open up the teleporter by typing '/teleport'.\n> ")
 
     if answer == "/teleport":
-        print("To use the teleporter use the up and down arrow keys to select where you want to teleport to. To exit the teleporter, click escape. Whenever you start moving the pointer, this message will dissapear.")
         printTeleporter()
+        print("To use the teleporter use the up and down arrow keys to select where you want to teleport to. To exit the teleporter, click escape. If you ever want to go back to the teleporter, type '/teleport'. Whenever you start moving the pointer, this message will dissapear.")
+
+def teleportTo(place):
+    global prompt
+
+    os.system("cls")
+
+    if place == "The town":
+        print("""You have arrived in the town. What would you like to do?
+        
+        - Go shopping
+        - Trade items
+        """)
+        answer = input(prompt)
 
 def moveTeleporterPointer(newPosition):
     global teleporter
@@ -143,6 +156,8 @@ def printTeleporter():
             pointerLine = moveTeleporterPointer(pointerLine)
         if keyboard.is_pressed("enter"):
             # handle teleporting to place
+            placeToGoTo = teleporter[pointerLine]
+            teleportTo(placeToGoTo)
             pass
         if keyboard.is_pressed("esc"):
             os.system("cls")
